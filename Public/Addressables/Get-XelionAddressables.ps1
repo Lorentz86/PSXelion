@@ -43,4 +43,5 @@ function Get-XelionAddressables{
         $datasetObjects = $datasetJson.data.object
         $arrayList.Add($datasetObjects)
     }
+    return $arrayList
 }
