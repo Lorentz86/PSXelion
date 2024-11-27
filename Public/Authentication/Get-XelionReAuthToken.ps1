@@ -15,8 +15,7 @@ function Get-XelionReAuthToken {
 
     try {
         # Construct the renewal URI
-        $loginUri = "/me/renew"
-        $Uri = $script:XelionConfig["XelionUri"] + $loginUri
+        $Uri = Get-XelionUrl -renew
 
         # Prepare the request body and headers
         $body = $script:XelionConfig["renewalToken"] | ConvertFrom-SecureString

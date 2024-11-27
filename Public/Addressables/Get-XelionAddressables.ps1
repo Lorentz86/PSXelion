@@ -6,54 +6,45 @@ function Get-XelionAddressables{
         [string]$SortBy="Name",
 
         [Parameter(Mandatory=$false, HelpMessage="Include user objects as status or employment seperated by a comma")]
-        [string[]]$Include,
-
-        [Parameter(Mandatory=$false, HelpMessage="Compress the data  to gzip from the API server, default is `$false")]
-        [ValidateSet($true,$false)]
-        [System.Boolean]$Compress=$false
+        [ValidateSet("status", "employment")]
+        [string[]]$Include
     )
-    # Default link
-    $addressablesUri = "/addressables?"
+
+    # Making the Addressables hashtable
+    $Addressables = @{}
     
-    # Include user objects
-    $includeurl=""
-    if($Include){
-        $includeurl = "&include="
-        foreach($item in $Include){
-            switch($item){
-                "status" {$includeurl = $includeurl + ",status"}
-                "employment" {$includeurl = $includeurl + ",employment"}
-            }          
-        }
-        $includeurl = $includeurl.replace("=,","=")
-    }
+    # Adding the SortBy values to the SortBy Key
+    $Addressables["SortBy"] = $SortBy
 
-    # Uribuilder
-    $uri = $Script:XelionConfig['XelionUri'] + $addressablesUri + "order_by="+$SortBy + $includeurl
+    # Adding the In
+    if($Include){$Addressables["Include"] = $Include}
 
-    # Headers
-    if($Compress){
-        $headers = Get-XelionHeaders -AddHeaders "Encoding"
-    }
-    else {
-        $headers = Get-XelionHeaders
-    }  
+    # Generate the URL for Addressables    
+    $url = Get-XelionUrl -Addressables $Addressables
+   
 
+    # First run to get started
     $Result = Invoke-WebRequest -Uri $uri -Method Get -Headers $headers -ContentType "application/json"
-    
-    # Convert json data to an array
     $arrayList = [System.Collections.ArrayList]::new()
     $datasetJson = $Result.Content | ConvertFrom-Json
     $datasetObjects = $datasetJson.data.object
+    $arrayList.Add($datasetObjects)
 
-
-    $datasetJson.data | Foreach-Object -ThrottleLimit 5 -Parallel {
-      $object = [PSCustomObject]@{
-        name = ""
-      }
+    # get all the adressables
+    while($limit -lt 10){
+        $limit++
+        $oid = $datasetObjects.oid | Select-Object -Last 1
+        $newuri = Get-XelionUrl -Addressables $Addressables -Paging $oid
+        $Result = Invoke-WebRequest -Uri $newuri -Method Get -Headers $headers -ContentType "application/json"
+        $datasetJson = $Result.Content | ConvertFrom-Json
+        $datasetObjects = $datasetJson.data.object
+        $arrayList.Add($datasetObjects)
     }
 
     
-    # Create a human readable array
 
+   
+
+    $newuri = $uri = $Script:XelionConfig['XelionUri'] + $addressablesUri + "after=99999999" + "&order_by="+$SortBy + $includeurl
+    $test = 
 }
