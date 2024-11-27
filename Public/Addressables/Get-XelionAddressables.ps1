@@ -22,15 +22,18 @@ function Get-XelionAddressables{
     # Generate the URL for Addressables    
     $url = Get-XelionUrl -Addressables $Addressables
    
+    # Get the headers
+    $headers = Get-XelionHeaders
 
     # First run to get started
-    $Result = Invoke-WebRequest -Uri $uri -Method Get -Headers $headers -ContentType "application/json"
+    $Result = Invoke-WebRequest -Uri $url -Method Get -Headers $headers -ContentType "application/json"
     $arrayList = [System.Collections.ArrayList]::new()
     $datasetJson = $Result.Content | ConvertFrom-Json
     $datasetObjects = $datasetJson.data.object
     $arrayList.Add($datasetObjects)
 
     # get all the adressables
+    $limit = 0
     while($limit -lt 10){
         $limit++
         $oid = $datasetObjects.oid | Select-Object -Last 1
@@ -40,11 +43,4 @@ function Get-XelionAddressables{
         $datasetObjects = $datasetJson.data.object
         $arrayList.Add($datasetObjects)
     }
-
-    
-
-   
-
-    $newuri = $uri = $Script:XelionConfig['XelionUri'] + $addressablesUri + "after=99999999" + "&order_by="+$SortBy + $includeurl
-    $test = 
 }

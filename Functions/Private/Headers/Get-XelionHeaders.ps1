@@ -1,7 +1,25 @@
+<#
+.SYNOPSIS
+    Generates HTTP headers for Xelion API requests.
+
+.DESCRIPTION
+    This function generates the necessary HTTP headers for making requests to the Xelion API. It checks if the current authorization token is valid and includes it in the headers. Optionally, it can add additional headers such as "Accept-Encoding".
+
+.PARAMETER AddHeaders
+    An array of additional headers to include in the request. Currently supports "Encoding" to add "Accept-Encoding: gzip".
+
+.EXAMPLE
+    $headers = Get-XelionHeaders -AddHeaders "Encoding"
+    This example generates headers including "Accept-Encoding: gzip".
+
+.NOTES
+    Ensure that the authorization token is valid before making API requests. If the token is expired, run Get-XelionAuthToken to generate a new token.
+#>
 function Get-XelionHeaders {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false, HelpMessage="Add additional headers, for example Encoding")]
+        [ValidateSet("Encoding")]
         [string[]]$AddHeaders
     )
 

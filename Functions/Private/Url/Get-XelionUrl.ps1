@@ -13,42 +13,60 @@ function Get-XelionUrl{
     )
     
     # Default URL
-    $default = $Script:XelionConfig["XelionUri"]
+    try{
+        $default = $Script:XelionConfig["XelionUri"]
+    }
+    catch{
+        Write-Error "Failed to get get default url. Import Xelionconfig using Import-XelionAuthToken or renew the token using Get-XelionAuthToken: $_"
+    }
 
-    # Renew URl Start
+    try{
+            # Renew URl Start
     if ($renew.IsPresent){
         $loginUri = "/me/renew"
         return $default + $loginUri
     }
     # Renew End
+    }
+    catch{
+        Write-Error "Failed to generate renew url: $_"
+    }
 
-    # Addressables URL Start
-    if($Addressables){
-        $addressablesUri = "/addressables?"
-        
-        # SortBy Hashtable
-        $SortBy = "SortBy"
-        $SortByUrl = "order_by="
-        if($addressables[$SortBy]){
-            $addressablesUri = $addressablesUri + "$SortBy="+$addressables[$SortBy]
-        }
-        
-        # Include hastable
-        if($Addressables[$Include]){
-            $Include = "Include"
-            $includeurl = "&include="
-            $IncludeArray = $Addressables[$Include] | Select-Object -Unique
-            foreach($Value in $IncludeArray){
-                $includeurl=$includeurl + ",$value"
+
+    try {
+            # Addressables URL Start
+        if($Addressables){
+            $addressablesUri = "/addressables?"
+            
+            # SortBy Hashtable
+            $SortBy = "SortBy"
+            if($addressables.ContainsKey($SortBy)){
+                $SortByUrl = "order_by="
+                $SortByUrl = $SortByUrl + $addressables[$SortBy]
             }
-            $includeurl = $includeurl.replace("=,","=")
+            
+            # Include hastable
+            $Include = "Include"
+            if($Addressables.ContainsKey($Include)){
+                $includeurl = "&include="
+                $IncludeArray = $Addressables[$Include] | Select-Object -Unique
+                
+                foreach($Value in $IncludeArray){
+                    $includeurl=$includeurl + ",$value"
+                }
+                $includeurl = $includeurl.replace("=,","=")
+            }
+            
+            # if paging is in use
+            if($paging){$pagingurl = Get-XelionPagingUrl -Paging $Paging}
+            
+            $finalurl = $default + $addressablesUri + $SortByUrl + $includeurl + $pagingurl
+            return $finalurl
         }
-        
-        # if paging is in use
-        if($paging){$pagingurl = Get-XelionPagingUrl -Paging $Paging}
-        
-        $finalurl = $default + $addressablesUri + $SortByUrl + $includeurl + $pagingurl
-        return $finalurl
     }
     # Addressables URL End
+    catch {
+        Write-Error "Failed to generate Addressable url: $_"
+    }
+
 }
