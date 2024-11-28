@@ -2,15 +2,12 @@
 $PublicFunctions  = @(Get-ChildItem -Path "$PSScriptRoot\Public\*.ps1" -ErrorAction SilentlyContinue -Recurse)
 $PrivateFunctions = @(Get-ChildItem -Path "$PSScriptRoot\Private\*.ps1" -ErrorAction SilentlyContinue -Recurse)
 
-Write-Information -MessageData "Test"
-
 Foreach ($Module in ($PublicFunctions + $PrivateFunctions)) {
     try {
-        # Write-Information -MessageData "Importing $($Module.Basename)"
-        "Importing $($Module.Basename)" | Out-File -FilePath "C:\temp\PSxelion.txt" -Append
+        Write-Information -MessageData "Importing $($Module.Basename)"
         . $Module.FullName
 
-        $Module.FullName | Out-File -FilePath "C:\temp\PSxelion.txt" -Append
+        Write-Host $Module.FullName
     }
     Catch {
         Write-Error -Message "Failed to import function $($Module.FullName): $_"
