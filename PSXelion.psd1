@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-# RootModule = ''
+ RootModule = "PSXelion.psm1"
 
 # Version number of this module.
 ModuleVersion = '0.0.1'
@@ -69,7 +69,7 @@ Copyright = '(c) Gijs van den Berg. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @()
+FunctionsToExport = @("Export-XelionAuthConfig","Get-XelionAuthToken","Get-XelionReAuthToken","Import-XelionAuthToken","Get-XelionAddressables")
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+         Tags = @('Xelion','XelionAPI','Voip','Xelion Api')
 
         # A URL to the license for this module.
         # LicenseUri = ''
