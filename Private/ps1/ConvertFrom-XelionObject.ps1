@@ -19,9 +19,9 @@ function ConvertFrom-XelionObject {
         [ValidateNotNullOrEmpty()]
         $Response
     )
-
     try {
         $datasetJson = $Response.Content | ConvertFrom-Json -Depth 10
+        if($datasetJson.data.count -lt 2){return $false}
         $datasetObjects = $datasetJson.data.object
         $datasetNestedProperties = ($datasetObjects | Get-Member | Where-Object -Property MemberType -Match NoteProperty).Name
         $result = $datasetObjects | Select-Object -Property $datasetNestedProperties
