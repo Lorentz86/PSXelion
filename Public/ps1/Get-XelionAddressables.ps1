@@ -7,7 +7,10 @@ function Get-XelionAddressables{
 
         [Parameter(Mandatory=$false, HelpMessage="Include user objects as status or employment seperated by a comma")]
         [ValidateSet("status", "employment","keywords")]
-        [string[]]$Include
+        [string[]]$Include,
+
+        [Parameter(Mandatory=$false, HelpMessage="Leave empty to generate a list of al Persons. Use the name parameter to search a specific person")]
+        [string]$Name
     )
 
     # Making the Addressables hashtable
@@ -18,6 +21,7 @@ function Get-XelionAddressables{
 
     # Adding the In
     if($Include){$Addressables["Include"] = $Include}
+    if($Include){$Addressables["Name"] = $Name}
 
     # Generate the URL for Addressables    
     $url = Get-XelionUrl -Addressables $Addressables

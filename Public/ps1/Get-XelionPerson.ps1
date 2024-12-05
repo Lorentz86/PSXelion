@@ -9,7 +9,7 @@ function Get-XelionPerson{
         [ValidateSet("status", "employment","keywords")]
         [string[]]$Include,
 
-        [Parameter(Mandatory=$false, HelpMessage="Leave empty to generate a list of al Persons. Give a name ")]
+        [Parameter(Mandatory=$false, HelpMessage="Leave empty to generate a list of al Persons. Use the name parameter to search a specific person")]
         [string]$Name
     )
 

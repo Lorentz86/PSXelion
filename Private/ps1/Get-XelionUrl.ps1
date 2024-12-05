@@ -59,11 +59,16 @@ function Get-XelionUrl{
                 }
                 $includeurl = $includeurl.replace("=,","=")
             }
+            # name hashtable
+            $Name = "Name"
+            if($Addressables.ContainsKey($Name)){
+                $nameurl = "&name=" + $Addressables[$Name]
+            }
             
             # if paging is in use
             if($paging){$pagingurl = Get-XelionPagingUrl -Paging $Paging}
             
-            $finalurl = $default + $addressablesUri + $SortByUrl + $includeurl + $pagingurl
+            $finalurl = $default + $addressablesUri + $SortByUrl + $includeurl + $nameurl +$pagingurl
             return $finalurl
         }
     }

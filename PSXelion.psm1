@@ -50,5 +50,4 @@ if ($functionsAdded -or $functionsRemoved -or $aliasesAdded -or $aliasesRemoved)
         $_ | Write-Error
 
     }
-
 }
