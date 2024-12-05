@@ -21,6 +21,13 @@ function ConvertFrom-XelionObject {
     )
     try {
         $datasetJson = $Response.Content | ConvertFrom-Json -Depth 10
+        $Properties = ($datasetJson  | Get-Member | Where-Object -Property MemberType -Match NoteProperty).Name
+        if("data" -notin $Properties) {
+            $datasetObjects = $datasetJson.object
+            $datasetNestedProperties = ($datasetObjects | Get-Member | Where-Object -Property MemberType -Match NoteProperty).Name
+            $result = $datasetObjects | Select-Object -Property $datasetNestedProperties
+            return $result
+        }
         if($datasetJson.data.count -lt 2){return $false}
         $datasetObjects = $datasetJson.data.object
         $datasetNestedProperties = ($datasetObjects | Get-Member | Where-Object -Property MemberType -Match NoteProperty).Name

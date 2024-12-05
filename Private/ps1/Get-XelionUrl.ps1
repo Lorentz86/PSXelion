@@ -65,10 +65,18 @@ function Get-XelionUrl{
                 $nameurl = "&name=" + $Addressables[$Name]
             }
             
+            # OID Hashtable
+            $oid = "oid"
+            if($Addressables.ContainsKey($oid)){
+                $addressablesUri = "/addressables/"
+                $oidurl = $Addressables[$oid]
+            }
+            
+            
             # if paging is in use
             if($paging){$pagingurl = Get-XelionPagingUrl -Paging $Paging}
             
-            $finalurl = $default + $addressablesUri + $SortByUrl + $includeurl + $nameurl +$pagingurl
+            $finalurl = $default + $addressablesUri + $oidurl + $SortByUrl + $includeurl + $nameurl + $pagingurl
             return $finalurl
         }
     }
