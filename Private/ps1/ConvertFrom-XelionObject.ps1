@@ -21,11 +21,24 @@ function ConvertFrom-XelionObject {
     )
     try {
         $datasetJson = $Response.Content | ConvertFrom-Json -Depth 10
-        if($datasetJson.data.count -lt 2){return $false}
-        $datasetObjects = $datasetJson.data.object
-        $datasetNestedProperties = ($datasetObjects | Get-Member | Where-Object -Property MemberType -Match NoteProperty).Name
-        $result = $datasetObjects | Select-Object -Property $datasetNestedProperties
-        return $result
+        $Properties = ($datasetJson  | Get-Member | Where-Object -Property MemberType -Match NoteProperty).Name
+        if("data" -notin $Properties) {
+            Write-Information -MessageData "The json response does not contain a Data property, continue using the json object"
+            $datasetObjects = $datasetJson.object
+            $datasetNestedProperties = ($datasetObjects | Get-Member | Where-Object -Property MemberType -Match NoteProperty).Name
+            $result = $datasetObjects | Select-Object -Property $datasetNestedProperties
+            return $result
+        }
+        else{
+            if($datasetJson.data.count -lt 1){
+                Write-Information -MessageData "End of paging."
+                return $false
+            }
+            $datasetObjects = $datasetJson.data.object
+            $datasetNestedProperties = ($datasetObjects | Get-Member | Where-Object -Property MemberType -Match NoteProperty).Name
+            $result = $datasetObjects | Select-Object -Property $datasetNestedProperties
+            return $result
+        }
     }
     catch {
         Write-Error "An error occurred while converting the Xelion object: $_"
