@@ -36,21 +36,25 @@ function Get-XelionAddressables {
         [string]$Name,
 
         [Parameter(Mandatory=$false, HelpMessage="The oid of the person",ValueFromPipeline=$true)]
-        [string]$oid
+        [string]$oid,
+
+        [Parameter(Mandatory=$false, HelpMessage="The oid of the person",ValueFromPipeline=$true)]
+        [ValidateSet("Person", "Organisation","X1Object","UnknownAddressable")]
+        [string[]]$Filter
+
+
     )
 
     try {
         # Making the Addressables hashtable
-        $Addressables = @{}
-        
-        # Adding the SortBy values to the SortBy Key
-        
+        $Addressables = @{}      
 
         # Adding the Include and Name values to the Addressables hashtable
         if ($SortBy){ $Addressables["SortBy"] = $SortBy}
         if ($Include) { $Addressables["Include"] = $Include }
         if ($Name) { $Addressables["Name"] = $Name }
         if ($oid) { $Addressables["oid"] = $oid }
+        if ($Filter) {$Addressables["Filter"] = $Filter}
 
         # Generate the URL for Addressables    
         $url = Get-XelionUrl -Addressables $Addressables
@@ -60,25 +64,27 @@ function Get-XelionAddressables {
         $headers = Get-XelionHeaders
 
         # First run to get started
-        $Result = Invoke-WebRequest -Uri $url -Method Get -Headers $headers -ContentType "application/json"
+        $Response = Invoke-WebRequest -Uri $url -Method Get -Headers $headers -ContentType "application/json"
         $arrayList = [System.Collections.ArrayList]::new()
-        $AddressablesList = ConvertFrom-XelionObject -Response $Result
+        $AddressablesList = ConvertFrom-XelionObject -Response $Response
         foreach ($item in $AddressablesList){$arrayList.Add($item) | Out-Null}
-        if($arrayList.count -lt 8){
-            Write-Information -MessageData "The list contains:  $($arrayList.count) items"
+        if($arrayList.count -lt 15){
+            Write-Information -MessageData "The list contains max items for this search. `nThis list contains:  $($arrayList.count) items"
             return $arrayList
         }
         # Get all the addressables
         while ($true) {
-            $oid = $AddressablesList.oid | Select-Object -Last 1
-            Write-Information "The list contains:  $($arrayList.count) items. Paging from $($oid)"
-            $newuri = Get-XelionUrl -Addressables $Addressables -Paging $oid
-            $Result = Invoke-WebRequest -Uri $newuri -Method Get -Headers $headers -ContentType "application/json"           
-            $AddressablesList = ConvertFrom-XelionObject -Response $Result
-            if (!$AddressablesList) { break }
-            $arrayList.Add($AddressablesList) | Out-Null
+            $Paging = Get-XelionPagingUrl -Response $Response -after
+            $newurl = Get-XelionUrl -Addressables $Addressables -Paging $Paging
+            Write-Information "The list contains:  $($arrayList.count) items."
+            $Response = Invoke-WebRequest -Uri $newurl -Method Get -Headers $headers -ContentType "application/json"           
+            $AddressablesList = ConvertFrom-XelionObject -Response $Response
+            if(!$AddressablesList){return $arrayList}
+            Write-Information -MessageData "AdressabeList Count:$($AddressablesList.count)"
+            foreach ($item in $AddressablesList){$arrayList.Add($item) | Out-Null}
+
         }
-        return $arrayList.ToArray()
+        return $arrayList
     }
     catch {
         Write-Error -Message "Failed to retrieve addressables: $_"

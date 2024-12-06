@@ -10,13 +10,14 @@ function Get-XelionContact{
         
         $ContactList = [System.Collections.ArrayList]::new()
         foreach($Contact in $AllContacts){
+                Write-Information -MessageData "Current Contact: $($Contact.commonName) `nCurrent OID: $($Contact.oid)"
                 $Info = Get-XelionAddressables -oid $contact.oid
-                $ContactList.Add($Info)
+                $ContactList.Add($Info) | Out-Null
             }
             return $ContactList
         }
     catch {
-        <#Do this if a terminating exception happens#>
+        Write-Error "Could not get contact information: $_"
     }
 }
 
