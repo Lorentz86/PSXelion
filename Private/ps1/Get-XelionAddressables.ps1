@@ -51,10 +51,10 @@ function Get-XelionAddressables {
 
         # Adding the Include and Name values to the Addressables hashtable
         if ($SortBy){ $Addressables["SortBy"] = $SortBy}
-        if ($Include) { $Addressables["Include"] = $Include }
+        if ($Include) { $Addressables["Include"] = $Include | Select-Object -Unique}
         if ($Name) { $Addressables["Name"] = $Name }
         if ($oid) { $Addressables["oid"] = $oid }
-        if ($Filter) {$Addressables["Filter"] = $Filter}
+        if ($Filter) {$Addressables["Filter"] = $Filter | Select-Object -Unique}
 
         # Generate the URL for Addressables    
         $url = Get-XelionUrl -Addressables $Addressables
