@@ -9,7 +9,12 @@ function Get-XelionContact{
         [string]$SortBy='mru',
 
         [Parameter(Mandatory=$false, HelpMessage="Raw Contact information so you can make your own filter")]
-        [switch]$Raw
+        [switch]$Raw,
+
+        [Parameter(Mandatory=$false, HelpMessage="Get the private, business or (default) both contact information.")]
+        [ValidateSet("Private","Business","Both")]
+        [string]$Include='Both'
+
     )
 
     try {
@@ -24,7 +29,7 @@ function Get-XelionContact{
                     }
                     return $ContactList
             }
-            else{
+            else{                
                 $AllContacts = Get-XelionAddressables -name $Name -SortBy $SortBy
                 $ContactList = [System.Collections.ArrayList]::new()
                 
@@ -37,24 +42,55 @@ function Get-XelionContact{
                     lastname = $Info.lastname
                     objectType = $Info.objectType
                     }
+                    
+                    if($Include -match "Private" -or $Include -match "Both"){
+                        $privateEmailCount = 1
+                        $privateNumberCount = 1
+                        foreach ($privateInformation in $Info.telecomAddresses) {                        
+                            if($privateInformation.addressType -match "Email"){
+                                Write-Host $privateInformation.address
+                                $privateEmailHeader = "PrivateEmail_" + $privateEmailCount
+                                $contactInfo | Add-Member -MemberType NoteProperty -Name $privateEmailHeader -Value $privateInformation.address
+                                $privateEmailCount++
+                            }
 
-                    $privateEmailCount = 1
-                    $privateNumberCount = 1
-                    foreach ($privateInformation in $Info.telecomAddresses) {                        
-                        if($privateInformation.addressType -match "Email"){
-                            Write-Host $privateInformation.address
-                            $privateEmailHeader = "PrivateEmail" + $privateEmailCount
-                            $contactInfo | Add-Member -MemberType NoteProperty -Name $privateEmailHeader -Value $privateInformation.address
-                            $privateEmailCount++
-                        }
-
-                        if($privateInformation.addressType -match "Telephone"){
-                            $privatePhoneHeader = "PrivatePhone" + $privateNumberCount
-                            $contactInfo | Add-Member -MemberType NoteProperty -Name $privatePhoneHeader -Value $privateInformation.address
-                            $privateNumberCount++
+                            if($privateInformation.addressType -match "Telephone" -or $privateInformation.addressType -match "Telephone_and_SMS"){
+                                $privatePhoneHeader = "PrivatePhone_" + $privateNumberCount
+                                $contactInfo | Add-Member -MemberType NoteProperty -Name $privatePhoneHeader -Value $privateInformation.address
+                                $privateNumberCount++
+                            }
                         }
                     }
-                    $ContactList.Add($contactInfo) | Out-Null
+                    elseif ($Include -match "Business" -or $Include -match "Both") {
+                        $businessEmailCount = 1
+                        $businessNumberCount = 1
+                        $BusinessContacts = $Info.employments
+
+                        foreach ($BusinessContact in $BusinessContacts){
+                            $CompanyCountNumber = 1
+                            
+                            $contactInfo | Add-Member -MemberType NoteProperty -Name "CompanyName_$CompanyCountNumber" -Value $BusinessContact.organisation.name
+                            $contactInfo | Add-Member -MemberType NoteProperty -Name "jobTitle_$CompanyCountNumber" -Value $BusinessContact.jobTitle
+                            $contactInfo | Add-Member -MemberType NoteProperty -Name "DepartmentName_$CompanyCountNumber" -Value $BusinessContact.departmentName
+                            $CompanyCountNumber++
+                            foreach($IndividualBusinessInfo in $BusinessContact.telecomAddresses){
+                                foreach($BusinessInfo in $IndividualBusinessInfo){
+                                    if ($BusinessInfo.addressType -match "Email"){
+                                        $businessEmailHeader = "BusinessEmail_" + $businessEmailCount
+                                        $contactInfo | Add-Member -MemberType NoteProperty -Name $businessEmailHeader -Value $BusinessInfo.address
+                                        $businessEmailCount++
+                                    }
+                                    if ($BusinessInfo.addressType -match "Telephone" -or $BusinessInfo.addressType -match "Telephone_and_SMS"){
+                                        $businessPhoneHeader = "BusinessPhone_" + $businessNumberCount
+                                        $contactInfo | Add-Member -MemberType NoteProperty -Name $businessPhoneHeader -Value $BusinessInfo.address
+                                        $businessNumberCount++
+                                    }
+                                }
+                            }
+                        }
+
+                    }     
+                    $ContactList.Add($contactInfo) | Out-Null               
                 }
                 return $ContactList
             }
