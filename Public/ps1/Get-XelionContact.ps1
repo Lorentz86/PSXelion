@@ -13,7 +13,7 @@ function Get-XelionContact{
 
         [Parameter(Mandatory=$false, HelpMessage="Get the private, business or (default) both contact information.")]
         [ValidateSet("Private","Business","Both")]
-        [string]$Include='Both'
+        [string]$Include="Both"
 
     )
 
@@ -60,28 +60,29 @@ function Get-XelionContact{
                                 $privateNumberCount++
                             }
                         }
+
                     }
-                    elseif ($Include -match "Business" -or $Include -match "Both") {
+                    if ($Include -match "Business" -or $Include -match "Both") {
                         $businessEmailCount = 1
                         $businessNumberCount = 1
+                        $CompanyCountNumber = 1
                         $BusinessContacts = $Info.employments
 
                         foreach ($BusinessContact in $BusinessContacts){
-                            $CompanyCountNumber = 1
-                            
-                            $contactInfo | Add-Member -MemberType NoteProperty -Name "CompanyName_$CompanyCountNumber" -Value $BusinessContact.organisation.name
+                            $CompanyName = "CompanyName_$CompanyCountNumber"
+                            $contactInfo | Add-Member -MemberType NoteProperty -Name $CompanyName -Value $BusinessContact.organisation.name
                             $contactInfo | Add-Member -MemberType NoteProperty -Name "jobTitle_$CompanyCountNumber" -Value $BusinessContact.jobTitle
                             $contactInfo | Add-Member -MemberType NoteProperty -Name "DepartmentName_$CompanyCountNumber" -Value $BusinessContact.departmentName
                             $CompanyCountNumber++
                             foreach($IndividualBusinessInfo in $BusinessContact.telecomAddresses){
                                 foreach($BusinessInfo in $IndividualBusinessInfo){
                                     if ($BusinessInfo.addressType -match "Email"){
-                                        $businessEmailHeader = "BusinessEmail_" + $businessEmailCount
+                                        $businessEmailHeader = "$CompanyName" + "_BusinessEmail_" + $businessEmailCount
                                         $contactInfo | Add-Member -MemberType NoteProperty -Name $businessEmailHeader -Value $BusinessInfo.address
                                         $businessEmailCount++
                                     }
                                     if ($BusinessInfo.addressType -match "Telephone" -or $BusinessInfo.addressType -match "Telephone_and_SMS"){
-                                        $businessPhoneHeader = "BusinessPhone_" + $businessNumberCount
+                                        $businessPhoneHeader = "$CompanyName" + "_BusinessPhone_" + $businessNumberCount
                                         $contactInfo | Add-Member -MemberType NoteProperty -Name $businessPhoneHeader -Value $BusinessInfo.address
                                         $businessNumberCount++
                                     }
@@ -89,8 +90,8 @@ function Get-XelionContact{
                             }
                         }
 
-                    }     
-                    $ContactList.Add($contactInfo) | Out-Null               
+                    }   
+                    $ContactList.Add($contactInfo) | Out-Null                 
                 }
                 return $ContactList
             }
