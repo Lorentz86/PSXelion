@@ -1,120 +1,74 @@
-function Get-XelionUrl{
+function Get-XelionUrl {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false, HelpMessage="Adds the renew to the url")]
         [switch]$renew,
 
-        [Parameter(Mandatory=$false, HelpMessage="Customize the addressables url seperated by a comma. For example SortBy, ")]
+        [Parameter(Mandatory=$false, HelpMessage="Customize the addressables url separated by a comma. For example SortBy, ")]
         [hashtable]$Addressables,
 
-        [Parameter(Mandatory=$false, HelpMessage="Object ID (oid) of the last object")]
-        [string]$Paging,
-
-        [Parameter(Mandatory=$false, HelpMessage="Customize the Persons url seperated by a comma. For example SortBy, ")]
-        [hashtable]$Persons
-
+        [Parameter(Mandatory=$false)]
+        [string]$Paging
     )
     
     # Default URL
-    try{
+    try {
         $default = $Script:XelionConfig["XelionUri"]
     }
-    catch{
-        Write-Error "Failed to get get default url. Import Xelionconfig using Import-XelionAuthToken or renew the token using Get-XelionAuthToken: $_"
-    }
-
-    try{
-            # Renew URl Start
-    if ($renew.IsPresent){
-        $loginUri = "/me/renew"
-        return $default + $loginUri
-    }
-    # Renew End
-    }
-    catch{
-        Write-Error "Failed to generate renew url: $_"
-    }
-
-
-    try {
-            # Addressables URL Start
-        if($Addressables.count -ge 1){
-            $addressablesUri = "/addressables?"
-            
-            # SortBy Hashtable
-            $SortBy = "SortBy"
-            if($addressables.ContainsKey($SortBy)){
-                $SortByUrl = "order_by="
-                $SortByUrl = $SortByUrl + $addressables[$SortBy]
-            }
-            
-            # Include hastable
-            $Include = "Include"
-            if($Addressables.ContainsKey($Include)){
-                $includeurl = "&include="
-                $IncludeArray = $Addressables[$Include] | Select-Object -Unique
-                
-                foreach($Value in $IncludeArray){
-                    $includeurl=$includeurl + ",$value"
-                }
-                $includeurl = $includeurl.replace("=,","=")
-            }
-            
-            # if paging is in use
-            if($paging){$pagingurl = Get-XelionPagingUrl -Paging $Paging}
-            
-            $finalurl = $default + $addressablesUri + $SortByUrl + $includeurl + $pagingurl
-            return $finalurl
-        }
-    }
     catch {
-        Write-Error "Failed to generate Addressable url: $_"
+        Write-Error "Failed to get default URL. Import XelionConfig using Import-XelionAuthToken or renew the token using Get-XelionAuthToken: $_"
+        return
     }
-        # Addressables URL End
 
-        # Persons URL Start
-    try {
-        if($Persons.count -ge 1){
-            $personsUri = "/addressables/persons?"
-            
-            # SortBy Hashtable
-            $SortBy = "SortBy"
-            if($Persons.ContainsKey($SortBy)){
-                $SortByUrl = "order_by="
-                $SortByUrl = $SortByUrl + $Persons[$SortBy]
-            }
-            
-            # Include hastable
-            $Include = "Include"
-            if($Persons.ContainsKey($Include)){
-                $includeurl = "&include="
-                $IncludeArray = $Persons[$Include] | Select-Object -Unique
-                
-                foreach($Value in $IncludeArray){
-                    $includeurl=$includeurl + ",$value"
-                }
-                $includeurl = $includeurl.replace("=,","=")
-            }
-            
-            # name hashtable
-            $Name = "Name"
-            if($Persons.ContainsKey($Name)){
-                $nameurl = "&name=" + $Persons[$Name]
-            }
+    # Renew URL
+    if ($renew.IsPresent) {
+        return "$default/me/renew"
+    }
 
-            # if paging is in use
-            if($paging){$pagingurl = Get-XelionPagingUrl -Paging $Paging}
-            
-            $finalurl = $default + $personsUri + $SortByUrl + $includeurl + $nameurl + $pagingurl
-            return $finalurl
+    # Paging
+    $pagingUrl = ""
+    if ($null -ne $Paging -and $Paging.Length -gt 0) {
+        $pagingUrl = "$Paging&"
+    }
+
+    # Addressables URL
+    if ($null -ne $Addressables -and $Addressables.Count -gt 0) {
+        $urlList = [System.Collections.ArrayList]::new()
+        $addressablesUri = "/addressables?"
+
+        if ($Addressables.ContainsKey("SortBy")) {
+            $SortByUrl = "order_by=" + $Addressables["SortBy"]
+            $urlList.add($SortByUrl) | Out-Null
         }
+
+        if ($Addressables.ContainsKey("Include")) {
+            $includeUrl = "&include=" + ($Addressables["Include"] -join ",")
+            $includeUrl = $includeUrl.replace("=,", "=")
+            $urlList.add($includeUrl) | Out-Null
+        }
+
+        if ($Addressables.ContainsKey("Name")) {
+            $nameUrl = "&name=" + $Addressables["Name"]
+            $urlList.add($nameUrl) | Out-Null
+        }
+
+        if ($Addressables.ContainsKey("oid")) {
+            $addressablesUri = "/addressables/"
+            $oidUrl = $Addressables["oid"]
+            $urlList.add($oidUrl) | Out-Null
+        }
+
+        if ($Addressables.ContainsKey("Filter")) {
+            $filterUrl = "&where=obj_type=" + ($Addressables["Filter"] -join ",")
+            $filterUrl = $filterUrl.replace("=,", "=")
+            $urlList.add($filterUrl) | Out-Null
+        }
+
+        $defaultUrl = $default + $addressablesUri + $pagingUrl
+        $generatedUrl = $urlList -join ""
+        $finalUrl = $defaultUrl + $generatedUrl
+        return $finalUrl
     }
-    catch {
-        <#Do this if a terminating exception happens#>
-    }
 
-    # Persons URL End
-    
-
-
+    Write-Error "No valid parameters provided to generate URL."
 }
