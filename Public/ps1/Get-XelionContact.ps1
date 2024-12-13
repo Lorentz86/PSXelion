@@ -18,11 +18,11 @@ function Get-XelionContact{
         [Parameter(Mandatory=$false, HelpMessage="The preconfigured structures are csv and json. If you want to create your own, choose raw")]
         [ValidateSet("raw","csv","json")]
         [string]$Format="json"
-
     )
 
     try {
-        if($Format -match "raw"){
+        if($Format -match "raw")
+        {
             # This will get all the contacts
             $AllContacts = Get-XelionAddressables -name $Name -SortBy $SortBy
     
@@ -36,9 +36,9 @@ function Get-XelionContact{
                 }
                 return $ContactList
         }
-        }catch{
-            Write-Error "Failed to get Xelion Contact with the $Format format: $_"
-        }
+    }catch{
+        Write-Error "Failed to get Xelion Contact with the $Format format: $_"
+    }
 
     try {
         # This part is to generate the csv format style
@@ -125,10 +125,8 @@ function Get-XelionContact{
                     lastname    = $Info.lastname
                     objectType  = $Info.objectType
                 }
-            
     
                 if ($Include -match "Private" -or $Include -match "Both") {
-                    Write-Information -MessageData "The choice is to use $Include, this is the private part."
                     $contactInfo | Add-Member -MemberType NoteProperty -Name "PrivateEmail" -Value @()
                     $contactInfo | Add-Member -MemberType NoteProperty -Name "PrivatePhone" -Value @()
                     foreach ($privateInformation in $Info.telecomAddresses) {
@@ -140,7 +138,6 @@ function Get-XelionContact{
                             $contactInfo.PrivatePhone += $privateInformation.address
                         }
                     }
-                    Write-Information -MessageData "Current Contact info contains: $ContactInfo"
                 }
         
                 if ($Include -match "Business" -or $Include -match "Both") {
@@ -173,7 +170,6 @@ function Get-XelionContact{
             }
             return $ContactList
         }
-        Write-Information -MessageData "No Choice has been made"
     } catch {
         "Failed to get Xelion Contact with the $Format format: $_"
     }
