@@ -6,19 +6,29 @@ function Get-XelionContactList{
         [string[]]$Type,
 
         [Parameter(Mandatory=$false, HelpMessage="Raw Contact information so you can make your own list")]
-        [switch]$Raw
+        [switch]$Raw,
+
+        [Parameter(Mandatory=$false, HelpMessage="Get the private, business or (default) both contact information.")]
+        [ValidateSet("Private","Business","Both")]
+        [string]$Include="Both",
+
+        [Parameter(Mandatory=$true, HelpMessage="The preconfigured structures are csv and json. If you want to create your own, choose raw")]
+        [ValidateSet("Raw","csv","Json")]
+        [string]$Format="json"
 
     )
     
     try{
-        if($raw.IsPresent){
+        if($Format -match "Raw"){
             if(1 -ge $type.Count){
                 Write-Information -MessageData "Getting all contacts. Can take a long time."
                 $AllContacs = Get-XelionAddressables -SortBy Name
                 return $AllContacs
             }
-            $Info = Get-XelionAddressables -Filter $Type
-            return $Info
+            $AllContacs = Get-XelionAddressables -Filter $Type
+            foreach($XelionContact in $AllContacts){
+
+            }
         }
     }
     catch{
