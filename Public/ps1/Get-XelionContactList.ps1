@@ -15,50 +15,30 @@ function Get-XelionContactList{
 
     )
     $Types = $Type | Select-Object -Unique
-    
-    try{
-        if($Template -match "raw"){
-            $ContactList = [System.Collections.ArrayList]::new()
-            Foreach ($ContactType in $Types){
-                $AllContacts = Get-XelionAddressables -SortBy "Name" -Filter $ContactType
-                foreach($Contact in $AllContacts){
-                        Write-Information -MessageData "Current Contact: $($Contact.commonName) `nCurrent OID: $($Contact.oid)"
-                        # This wil get detailed contact information
-                        $Info = Get-XelionAddressables -oid $contact.oid                   
+    $ContactList = [System.Collections.ArrayList]::new()
+    try {
+        Foreach ($ContactType in $Types){
+            $AllContacts = Get-XelionAddressables -SortBy "Name" -Filter $ContactType
+            foreach($Contact in $AllContacts){
+                switch ($Template) {
+                    "raw" {
+                        $Info = Get-XelionContact -oid $contact.oid -Template $Template -Include $Include
+                        $ContactList.Add($Info) | Out-Null
+                    }
+                    "csv-custom" {
+                        $Info = Get-XelionContact -oid $contact.oid -Template $Template -Include $Include
+                        $ContactList.Add($Info) | Out-Null
+                    }
+                    "csv-compact" {
+                        $Info = Get-XelionContact -oid $contact.oid -Template $Template -Include $Include
                         $ContactList.Add($Info) | Out-Null
                     }
                 }
             }
-            return $ContactList
         }
-        catch{
-            Write-Error "Could not generate list with $Template format: $_"
-        }
-
-    try {
-        if ($Template -match "csv-custom") {
-            $ContactList = [System.Collections.ArrayList]::new()
-            Foreach ($ContactType in $Types){
-                $AllContacts = Get-XelionAddressables -SortBy "Name" -Filter $ContactType
-                foreach ($contact in $AllContacts) {
-                    $Info = Get-XelionAddressables -oid $contact.oid
-                    $contactInfo = ConvertTo-XelionTemplate -Template $Template -Addressable $Include -XelionObject $Info
-                    $ContactList.Add($contactInfo) | Out-Null
-                }
-            }         
-            return $ContactList
-        }
-
-        if ($Template -match "csv-compact") {
-            Foreach ($ContactType in $Types){
-                $AllContacts = Get-XelionAddressables -SortBy "Name" -Filter $ContactType
-                foreach ($contact in $AllContacts) {
-                    $Info = Get-XelionAddressables -oid $contact.oid
-                    $contactInfo = ConvertTo-XelionTemplate -Template $Template -Addressable $Include -XelionObject $Info
-                    $ContactList.Add($contactInfo) | Out-Null
-                }
-            }         
-            return $ContactList
-        }
-    } catch {Write-Error "Failed to get Xelion Contact with the $Template format: $_"}
+        return $ContactList
+    }
+    catch {
+        Write-Error "Failed to get Xelion Contact with the $Template format: $_"
+    }
 }
