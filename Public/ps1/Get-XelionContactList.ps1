@@ -27,7 +27,7 @@ function Get-XelionContactList{
             }
             $AllContacs = Get-XelionAddressables -Filter $Type
             foreach($XelionContact in $AllContacts){
-
+                
             }
         }
     }
