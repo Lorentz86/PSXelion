@@ -27,7 +27,7 @@ function Get-XelionAuthToken {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true, HelpMessage="Credentials to connect to the Xelion API")]
-        [securestring]$Credentials,
+        [pscredential]$Credentials,
 
         [Parameter(Mandatory=$true, HelpMessage="Hostname of the Xelion tenant (e.g., exampleCompany.xelion.com)")]
         [string]$Hostname,

@@ -69,9 +69,9 @@ Copyright = '(c) Gijs van den Berg. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Export-XelionAuthConfig', 'Get-XelionAuthToken', 'Get-XelionContact', 
+FunctionsToExport = 'Get-XelionAuthToken', 'Get-XelionContact', 
                'Get-XelionContactList', 'Get-XelionReAuthToken', 
-               'Import-XelionAuthToken'
+               'Import-XelionAuthToken','Get-XelionContactList','Get-XelionContact'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
