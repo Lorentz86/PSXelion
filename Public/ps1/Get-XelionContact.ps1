@@ -49,34 +49,25 @@ function Get-XelionContact {
             Write-Error "Failed to get Xelion Addressables: $_"
         }
         try {
-            if ($Template -match "raw") {
-                foreach ($Contact in $AllContacts) {
-                    Write-Information -MessageData "Current Contact: $($Contact.commonName) `nCurrent OID: $($Contact.oid)"
-                    $Info = Get-XelionAddressables -oid $Contact.oid
-                    $ContactList.Add($Info) | Out-Null
+            $ContactList = [System.Collections.ArrayList]::new()
+            foreach($Contact in $AllContacts){
+                $Info = Get-XelionAddressables -oid $Contact.oid
+                switch($Template){
+                    "raw" {
+                        $ContactList.Add($info) | Out-Null
+                    }
+                    "csv-custom"{
+                        $contactInfo = ConvertTo-XelionTemplate -Template $Template -Addressable $Include -XelionObject $Info
+                        $ContactList.Add($contactInfo) | Out-Null
+                    }
+                    "csv-compact"{
+                        $contactInfo = ConvertTo-XelionTemplate -Template $Template -Addressable $Include -XelionObject $Info
+                        $ContactList.Add($contactInfo) | Out-Null
+                    }
                 }
                 return $ContactList
             }
-        } catch {
-            Write-Error "Failed to get Xelion Contact with the $Template format: $_"
-        }
-        try {
-            if ($Template -match "csv-custom") {
-                foreach ($Contact in $AllContacts) {
-                    $Info = Get-XelionAddressables -oid $Contact.oid
-                    $contactInfo = ConvertTo-XelionTemplate -Template $Template -Addressable $Include -XelionObject $Info
-                    $ContactList.Add($contactInfo) | Out-Null
-                }
-                return $ContactList
-            }
-            if ($Template -match "csv-compact") {
-                foreach ($Contact in $AllContacts) {
-                    $Info = Get-XelionAddressables -oid $Contact.oid
-                    $contactInfo = ConvertTo-XelionTemplate -Template $Template -Addressable $Include -XelionObject $Info
-                    $ContactList.Add($contactInfo) | Out-Null
-                }
-                return $ContactList
-            }
+
         } catch {
             Write-Error "Failed to get Xelion Contact with the $Template format: $_"
         }
